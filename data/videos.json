@@ -1,0 +1,274 @@
+{
+  "categories": [
+    {
+      "id": "instalacion",
+      "label": "Installation",
+      "videos": [
+        {
+          "title": "Rink Assembly - Preparation",
+          "vimeoId": "901827973"
+        },
+        {
+          "title": "Rink Assembly - Installation of the Panels",
+          "vimeoId": "901828229"
+        },
+        {
+          "title": "Panel Installation in Challenging Circumstances",
+          "vimeoId": "901828590"
+        },
+        {
+          "title": "Rink Assembly - Dasherboard Installation",
+          "vimeoId": "901830671"
+        },
+        {
+          "title": "Rink Assembly - Dasherboard Levelling",
+          "vimeoId": "901830886"
+        }
+      ]
+    },
+    {
+      "id": "limpieza",
+      "label": "Cleaning",
+      "videos": [
+        {
+          "title": "Glice Cleaning Machines",
+          "vimeoId": "611771348"
+        },
+        {
+          "title": "Glice Vacuum Cleaner",
+          "vimeoId": "611775684"
+        },
+        {
+          "title": "Fogger for Glice Clean",
+          "vimeoId": "611777693"
+        },
+        {
+          "title": "Glice Polisher Assembly",
+          "vimeoId": "611779140"
+        },
+        {
+          "title": "Glice Polisher Operation",
+          "vimeoId": "611781045"
+        },
+        {
+          "title": "Fogger for Glice Care",
+          "vimeoId": "611784633"
+        },
+        {
+          "title": "Glice Cleaning Procedure",
+          "vimeoId": "611786877"
+        }
+      ]
+    },
+    {
+      "id": "afiladora-prosharp",
+      "label": "Sharpener – ProSharp",
+      "videos": [
+        {
+          "title": "Unboxing",
+          "vimeoId": "611790503"
+        },
+        {
+          "title": "Plugging in Power Cable",
+          "vimeoId": "611825966"
+        },
+        {
+          "title": "Plugging in Vacuum Cleaner",
+          "vimeoId": "611827145"
+        },
+        {
+          "title": "Clamping the Skate",
+          "vimeoId": "611847771"
+        },
+        {
+          "title": "Activate Sharpening",
+          "vimeoId": "611853474"
+        },
+        {
+          "title": "One Cycle",
+          "vimeoId": "611854463"
+        },
+        {
+          "title": "Unclamping the Skate",
+          "vimeoId": "611878892"
+        },
+        {
+          "title": "Clamping Skate and Sharpening 1 Cycle",
+          "vimeoId": "611881736"
+        },
+        {
+          "title": "Honing",
+          "vimeoId": "611884909"
+        },
+        {
+          "title": "Testing Sharpness",
+          "vimeoId": "611902038"
+        },
+        {
+          "title": "Daily Cleaning",
+          "vimeoId": "611903474"
+        },
+        {
+          "title": "Adjusting Wheel Pressure",
+          "vimeoId": "611916976"
+        },
+        {
+          "title": "Changing Grinding Wheel",
+          "vimeoId": "611940672"
+        },
+        {
+          "title": "Checking Even Edges and Adjustment of Grinding Wheel's Lateral Position",
+          "vimeoId": "611945112"
+        }
+      ]
+    },
+    {
+      "id": "afiladora-sparx",
+      "label": "Sharpener – Sparx",
+      "videos": [
+        {
+          "title": "Quick Start Guide",
+          "vimeoId": "1240709248"
+        },
+        {
+          "title": "Assembling the Sharpener",
+          "vimeoId": "1240712696"
+        },
+        {
+          "title": "Aligning the Sharpener",
+          "vimeoId": "1240713151"
+        },
+        {
+          "title": "Installing Grinding Ring",
+          "vimeoId": "1240711034"
+        },
+        {
+          "title": "Cleaning the Base",
+          "vimeoId": "1240711960"
+        },
+        {
+          "title": "Sharpening Basics",
+          "vimeoId": "1240706038"
+        },
+        {
+          "title": "Lifting the Head Unit",
+          "vimeoId": "1240709929"
+        },
+        {
+          "title": "Sharpening Figure Skates",
+          "vimeoId": "1240708551"
+        },
+        {
+          "title": "Replacing the Air Filter",
+          "vimeoId": "1240706923"
+        },
+        {
+          "title": "Removing Head Unit",
+          "vimeoId": "1240707122"
+        }
+      ]
+    },
+    {
+      "id": "desinstalacion",
+      "label": "Disassembly",
+      "videos": [
+        {
+          "title": "Rink Disassembly - Panel Disassembly",
+          "vimeoId": "901831138"
+        },
+        {
+          "title": "Rink Disassembly - Dasherboard Disassembly",
+          "vimeoId": "901831271"
+        }
+      ]
+    },
+    {
+      "id": "almacenaje",
+      "label": "Storage",
+      "videos": [
+        {
+          "title": "Wooden Pallet: Boxing Panels",
+          "vimeoId": "613106246"
+        },
+        {
+          "title": "Wooden Pallet: Unboxing Straight Dasherboards",
+          "vimeoId": "613071349"
+        },
+        {
+          "title": "Wooden Pallet: Unboxing Curved Dasherboards + Feet",
+          "vimeoId": "613069306"
+        },
+        {
+          "title": "Wooden Pallet: Boxing Straight Dasherboards with 2 Guides",
+          "vimeoId": "613067399"
+        },
+        {
+          "title": "Wooden Pallet: Boxing Straight Dasherboards with 1 Guide",
+          "vimeoId": "613065827"
+        },
+        {
+          "title": "Wooden Pallet: Boxing Curved Dasherboards + Feet",
+          "vimeoId": "613063617"
+        },
+        {
+          "title": "Pallet Box: Unboxing Panels",
+          "vimeoId": "613104572"
+        },
+        {
+          "title": "Pallet Box: Boxing Panels",
+          "vimeoId": "613103131"
+        },
+        {
+          "title": "Boxing Glice Panels",
+          "vimeoId": "613101287"
+        },
+        {
+          "title": "Pallet Box: Unboxing Straight Dasherboards",
+          "vimeoId": "613060435"
+        },
+        {
+          "title": "Pallet Box: Unboxing Curved Dasherboards + Feet",
+          "vimeoId": "613059124"
+        },
+        {
+          "title": "Pallet Box: Boxing Straight Dasherboards",
+          "vimeoId": "613058057"
+        },
+        {
+          "title": "Pallet Box: Boxing Curved Dasherboards + Feet",
+          "vimeoId": "613055782"
+        },
+        {
+          "title": "Wooden Pallet: Boxing Curved Dasherboards + Feet on a Wooden Pallet",
+          "vimeoId": "613061697"
+        }
+      ]
+    },
+    {
+      "id": "transporte",
+      "label": "Transport",
+      "videos": [
+        {
+          "title": "Loading of the Skate Shelves",
+          "vimeoId": "901825528"
+        },
+        {
+          "title": "Loading with Long Blades",
+          "vimeoId": "901826153"
+        },
+        {
+          "title": "Loading with Short Blades",
+          "vimeoId": "901826414"
+        },
+        {
+          "title": "Manual Pallet Jack",
+          "vimeoId": "901826765"
+        },
+        {
+          "title": "Repeat Loading",
+          "vimeoId": "901826897"
+        }
+      ]
+    }
+  ]
+}

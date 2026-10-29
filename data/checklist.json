@@ -1,0 +1,175 @@
+{
+  "title": "StellarGlide™ Maintenance Checklist",
+  "version": "2.0",
+  "source": "Glice Academy Protocol + stakeholder inputs (FX Live, Andy Wilson)",
+  "changelog": [
+    "v2: añadida lógica condicional para limpieza (sucia? -> restaurada?)",
+    "v2: o2 (Glice Care) marcada como pareja obligatoria de o1, no como pregunta independiente",
+    "v2: frecuencia de afilado actualizada a 2-4 horas de patinaje (antes: 2 horas)",
+    "v2: s3 marcada como acción por evento, condicionada a nuevo campo del Rink Profile",
+    "v2.1: removed s1 (sharpen blades reminder) — sharpening is on-request, no routine needed. s2 (check sharpener configuration) is now always shown, independent of rental, since the rink may still own a sharpener for on-request service.",
+    "v2.2: re-added s1 (sharpen blades, 2-4h reminder), conditional on offersSkateRental — rental skates need routine sharpening, s2 (configuration check) stays always-on regardless.",
+    "v2.3: removed s3 (rental skate return check / event counter) entirely — decided it added confusion without enough value for the prototype."
+  ],
+  "requiresRinkProfileUpdate": {
+    "newField": "offersSkateRental",
+    "label": "Do you offer skate rental?",
+    "type": "boolean",
+    "note": "Campo nuevo a añadir en Flujo 0 (Rink Profile). Controla si el grupo 'rental' se muestra en el checklist de mantenimiento."
+  },
+  "questions": [
+    {
+      "id": "q_dirty",
+      "text": "Is the surface visibly dirty?",
+      "type": "boolean",
+      "frequency": "daily_check",
+      "note": "Se pregunta cada día como parte del bloque de limpieza. Si 'No', el bloque 'occasional' no se muestra ese día."
+    },
+    {
+      "id": "q_restored",
+      "text": "After cleaning, was the surface restored?",
+      "type": "boolean",
+      "shownAfter": "o1",
+      "note": "Solo aparece si se completó la limpieza húmeda (o1) ese día. Si 'No', se muestra el grupo 'powerwash'."
+    }
+  ],
+  "groups": [
+    {
+      "id": "daily",
+      "label": "Daily",
+      "icon": "sun",
+      "accent": "blue",
+      "trigger": "always",
+      "tasks": [
+        {
+          "id": "d1",
+          "name": "Dry-brush the entire surface",
+          "note": "Use the Glice Activator Brush™. No water, or just a little — do not use the vacuum function. Activates the shear effect for excellent glide.",
+          "frequency": "Every day",
+          "badge": "every day",
+          "trigger": "always"
+        },
+        {
+          "id": "d2",
+          "name": "Vacuum-clean the surface",
+          "note": "Remove dust after brushing.",
+          "frequency": "Every day",
+          "badge": "every day",
+          "trigger": "always"
+        },
+        {
+          "id": "d3",
+          "name": "Cover rink with UV protection when not in use",
+          "note": "Apply UV protection cover over the rink whenever it is not in use to protect the surface.",
+          "frequency": "Every day",
+          "badge": "every day",
+          "trigger": {
+            "type": "conditional",
+            "requiresRinkProfileField": "hasCover",
+            "note": "Only relevant if the rink has a UV protection cover, per the Rink Profile."
+          }
+        }
+      ]
+    },
+    {
+      "id": "occasional",
+      "label": "Occasionally — when surface looks dirty",
+      "icon": "droplet",
+      "accent": "amber",
+      "trigger": {
+        "type": "conditional",
+        "showWhen": {
+          "question": "q_dirty",
+          "equals": true
+        }
+      },
+      "tasks": [
+        {
+          "id": "o1",
+          "name": "Wet clean the surface",
+          "note": "Kärcher brush + water + Glice Clean, vacuum function ON.",
+          "frequency": "When dirty",
+          "badge": "when dirty",
+          "trigger": {
+            "type": "conditional",
+            "showWhen": {
+              "question": "q_dirty",
+              "equals": true
+            }
+          }
+        },
+        {
+          "id": "o2",
+          "name": "Apply Glice Care after wet cleaning",
+          "note": "Wet cleaning dries out the surface. Glice Care restores it. Never skip this step.",
+          "frequency": "Always after wet clean",
+          "badge": "always",
+          "trigger": {
+            "type": "pairedWith",
+            "pairedTaskId": "o1",
+            "note": "Se muestra y marca siempre junto a o1, no depende de una pregunta propia."
+          }
+        }
+      ]
+    },
+    {
+      "id": "powerwash",
+      "label": "Power wash — exceptional only",
+      "subtitle": "Only if wet cleaning is not enough",
+      "icon": "alert-triangle",
+      "accent": "red",
+      "trigger": {
+        "type": "conditional",
+        "showWhen": {
+          "question": "q_restored",
+          "equals": false
+        }
+      },
+      "tasks": [
+        {
+          "id": "pw1",
+          "name": "Power wash the surface",
+          "note": "Only when wet cleaning has not restored the surface.",
+          "frequency": "Exceptional only",
+          "badge": "exceptional",
+          "trigger": {
+            "type": "conditional",
+            "showWhen": {
+              "question": "q_restored",
+              "equals": false
+            }
+          }
+        }
+      ]
+    },
+    {
+      "id": "sharpening",
+      "label": "Sharpener",
+      "icon": "cut",
+      "accent": "green",
+      "tasks": [
+        {
+          "id": "s1",
+          "name": "Sharpen blades",
+          "note": "For a perfect skating experience, sharpen after every 2-4 hours of skating.",
+          "frequency": "Every 2-4 hrs skating",
+          "badge": "every 2-4 hrs skating",
+          "trigger": {
+            "type": "conditional",
+            "requiresRinkProfileField": "offersSkateRental",
+            "note": "Only relevant for rental skates, which see repeated use across many skaters."
+          }
+        },
+        {
+          "id": "s2",
+          "name": "Check sharpener configuration",
+          "note": "Confirm the sharpening wheel is correctly centred. Check at least once a day.",
+          "frequency": "Once a day",
+          "badge": "once a day",
+          "trigger": "always"
+        }
+      ]
+    }
+  ],
+  "tip": "Daily brushing also keeps skate blades sharper for longer — saving the Rink Manager time. Want to save time? Brush the rink daily!"
+}

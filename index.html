@@ -1,0 +1,610 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>Glice Operator App</title>
+<link rel="manifest" href="manifest.json">
+<meta name="theme-color" content="#0E0E12">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Inter+Tight:wght@500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="css/styles.css">
+</head>
+<body>
+
+<div id="legalOverlay" class="legal-overlay" hidden>
+  <div class="legal-overlay__box">
+    <h1 class="screen-title">Before You Start</h1>
+    <p class="screen-subtitle">This app helps rink staff run daily maintenance checks. Please read before continuing:</p>
+
+    <ol class="legal-list">
+      <li><strong>Your data stays on this device.</strong> Rink profile, checklist history, staff names, and photos are stored locally on this device only. Glice does not receive or store this data unless you actively export or send it (for example, by sharing a PDF summary).</li>
+      <li><strong>Photos.</strong> Photos you take are for maintenance records. Avoid including people in photos where possible; your facility is responsible for how these images are stored, shared, and deleted on-site.</li>
+      <li><strong>Videos.</strong> The Video Library streams from Vimeo. Playing a video connects to Vimeo's service, which is outside Glice's control.</li>
+      <li><strong>No warranty.</strong> This app is provided "as is," as a maintenance aid. It does not replace the official Glice manuals, training, or manufacturer instructions, and Glice is not liable for damages arising from its use, to the fullest extent permitted by law.</li>
+      <li><strong>Your facility's responsibility.</strong> Your facility (as employer) is responsible for complying with applicable data protection and labor laws regarding staff names and activity records entered here.</li>
+    </ol>
+
+    <details class="legal-details">
+      <summary>Read full Legal &amp; Privacy Notice</summary>
+      <div class="legal-text" id="legalFullTextOverlay"></div>
+    </details>
+
+    <button type="button" class="btn-primary" id="legalAcceptBtn" style="margin-top:20px;">I Understand and Accept</button>
+  </div>
+</div>
+
+<header class="app-header">
+  <img src="assets/logo-silver.png" alt="Glice" class="app-header__logo">
+</header>
+
+<main id="app-root" class="app-root">
+
+  <section id="screen-home" class="screen">
+    <div class="home-context">
+      <p class="home-date" id="homeDate"></p>
+      <p class="home-rink-summary" id="homeRinkSummary">Set up your Rink Profile to get started</p>
+    </div>
+
+    <button class="hero-card" data-screen="maintenance">
+      <span class="hero-card__title">Daily Maintenance</span>
+      <span class="hero-card__desc" id="heroProgress">Open today's checklist</span>
+    </button>
+
+    <nav class="module-grid module-grid--secondary">
+      <button class="module-card" data-screen="rink-profile">
+        <span class="module-card__title">Rink Profile</span>
+        <span class="module-card__desc">Set up your rink details</span>
+      </button>
+      <button class="module-card" data-screen="videos">
+        <span class="module-card__title">Video Library</span>
+        <span class="module-card__desc">Installation, care and more</span>
+      </button>
+      <button class="module-card" data-screen="history">
+        <span class="module-card__title">History</span>
+        <span class="module-card__desc">Completed tasks &amp; photos</span>
+      </button>
+      <button class="module-card" data-screen="support">
+        <span class="module-card__title">Support</span>
+        <span class="module-card__desc">Contact Glice Helpdesk</span>
+      </button>
+    </nav>
+  </section>
+
+  <section id="screen-rink-profile" class="screen" hidden>
+    <button class="back-btn" data-back>&larr; Back</button>
+    <h1 class="screen-title">Rink Profile</h1>
+    <p class="screen-subtitle">Tell us about your rink — this shapes your daily checklist.</p>
+
+    <form id="rink-profile-form">
+
+      <label class="field-label" for="rinkSize">Rink size (m²)</label>
+      <input type="number" id="rinkSize" name="rinkSize" class="field-input" placeholder="e.g. 200" min="0">
+
+      <div class="field-label">Indoor or outdoor?</div>
+      <div class="toggle-group" data-field="location">
+        <button type="button" class="btn-secondary" data-value="indoor">Indoor</button>
+        <button type="button" class="btn-secondary" data-value="outdoor">Outdoor</button>
+      </div>
+
+      <div class="field-label">Does the rink have drainage?</div>
+      <div class="toggle-group" data-field="hasDrainage">
+        <button type="button" class="btn-secondary" data-value="yes">Yes</button>
+        <button type="button" class="btn-secondary" data-value="no">No</button>
+      </div>
+
+      <div class="field-label">Do you have a UV protection cover?</div>
+      <div class="toggle-group" data-field="hasCover">
+        <button type="button" class="btn-secondary" data-value="yes">Yes</button>
+        <button type="button" class="btn-secondary" data-value="no">No</button>
+      </div>
+
+      <div class="field-label">Do you offer skate rental?</div>
+      <div class="toggle-group" data-field="offersSkateRental">
+        <button type="button" class="btn-secondary" data-value="yes">Yes</button>
+        <button type="button" class="btn-secondary" data-value="no">No</button>
+      </div>
+
+      <button type="submit" class="btn-primary" style="margin-top:8px;">Save profile</button>
+      <p id="profile-saved-msg" class="field-saved-msg" hidden>Saved ✓</p>
+    </form>
+  </section>
+
+  <section id="screen-maintenance" class="screen" hidden>
+    <button class="back-btn" data-back>&larr; Back</button>
+    <h1 class="screen-title">Daily Maintenance</h1>
+    <p class="screen-subtitle">Today's checklist</p>
+    <div id="maintenanceContent">
+      <p class="screen-subtitle">Loading checklist…</p>
+    </div>
+  </section>
+
+  <section id="screen-videos" class="screen" hidden>
+    <button class="back-btn" data-back>&larr; Back</button>
+    <h1 class="screen-title">Video Library</h1>
+    <p class="screen-subtitle">Browse by category.</p>
+    <nav class="module-grid" id="videoCategoryGrid"></nav>
+  </section>
+
+  <section id="screen-video-category" class="screen" hidden>
+    <button class="back-btn" data-back="videos">&larr; Back</button>
+    <h1 class="screen-title" id="videoCategoryTitle">Category</h1>
+    <div id="videoPlayerWrap" hidden style="margin:12px 0 16px;">
+      <div style="position:relative;width:100%;aspect-ratio:16/9;border-radius:12px;overflow:hidden;background:#000;">
+        <iframe id="videoPlayerFrame" src="" style="width:100%;height:100%;border:0;" allow="autoplay; fullscreen; picture-in-picture" allowfullscreen title="Video player"></iframe>
+      </div>
+    </div>
+    <div class="task-card" id="videoCategoryList"></div>
+  </section>
+
+  <section id="screen-support" class="screen" hidden>
+    <button class="back-btn" data-back>&larr; Back</button>
+    <h1 class="screen-title">Support</h1>
+    <p class="screen-subtitle">Contact the Glice Helpdesk directly.</p>
+
+    <label class="field-label" for="supportMessage">What's going on?</label>
+    <textarea id="supportMessage" class="field-input" rows="5" placeholder="Describe the issue you're having..."></textarea>
+
+    <button type="button" id="contactSupportBtn" class="btn-primary" style="margin-top:16px;">Contact Support</button>
+
+    <p class="field-saved-msg" style="color:var(--text-secondary);margin-top:14px;">
+      This opens your device's email app. If nothing happens, make sure you have a mail app configured, or email us directly.
+    </p>
+    <p style="text-align:center;margin-top:10px;">
+      <strong style="color:var(--text-primary);font-size:15px;">helpdesk@glice.com</strong>
+    </p>
+
+    <button type="button" class="legal-link" data-screen="legal">Legal &amp; Privacy Notice</button>
+  </section>
+
+  <section id="screen-legal" class="screen" hidden>
+    <button class="back-btn" data-back="support">&larr; Back</button>
+    <h1 class="screen-title">Legal &amp; Privacy Notice</h1>
+    <p class="screen-subtitle">Last updated: October 2026</p>
+    <div class="legal-text" id="legalFullTextScreen"></div>
+  </section>
+
+  <section id="screen-history" class="screen" hidden>
+    <button class="back-btn" data-back>&larr; Back</button>
+    <h1 class="screen-title">History</h1>
+    <p class="screen-subtitle">Completed tasks, staff and photos, most recent first.</p>
+    <button type="button" class="btn-primary" id="exportPdfBtn" style="margin-bottom:20px;">Share Daily Summary (PDF)</button>
+    <div id="historyContent"></div>
+  </section>
+
+</main>
+
+<script type="application/json" id="checklistData">
+{
+  "title": "StellarGlide™ Maintenance Checklist",
+  "version": "2.0",
+  "source": "Glice Academy Protocol + stakeholder inputs (FX Live, Andy Wilson)",
+  "changelog": [
+    "v2: añadida lógica condicional para limpieza (sucia? -> restaurada?)",
+    "v2: o2 (Glice Care) marcada como pareja obligatoria de o1, no como pregunta independiente",
+    "v2: frecuencia de afilado actualizada a 2-4 horas de patinaje (antes: 2 horas)",
+    "v2: s3 marcada como acción por evento, condicionada a nuevo campo del Rink Profile"
+  ],
+  "requiresRinkProfileUpdate": {
+    "newField": "offersSkateRental",
+    "label": "Do you offer skate rental?",
+    "type": "boolean",
+    "note": "Campo nuevo a añadir en Flujo 0 (Rink Profile). Controla si el grupo 'rental' se muestra en el checklist de mantenimiento."
+  },
+  "questions": [
+    {
+      "id": "q_dirty",
+      "text": "Is the surface visibly dirty?",
+      "type": "boolean",
+      "frequency": "daily_check",
+      "note": "Se pregunta cada día como parte del bloque de limpieza. Si 'No', el bloque 'occasional' no se muestra ese día."
+    },
+    {
+      "id": "q_restored",
+      "text": "After cleaning, was the surface restored?",
+      "type": "boolean",
+      "shownAfter": "o1",
+      "note": "Solo aparece si se completó la limpieza húmeda (o1) ese día. Si 'No', se muestra el grupo 'powerwash'."
+    }
+  ],
+  "groups": [
+    {
+      "id": "daily",
+      "label": "Daily",
+      "icon": "sun",
+      "accent": "blue",
+      "trigger": "always",
+      "tasks": [
+        {
+          "id": "d1",
+          "name": "Dry-brush the entire surface",
+          "note": "Use the Glice Activator Brush™. No water, or just a little — do not use the vacuum function. Activates the shear effect for excellent glide.",
+          "frequency": "Every day",
+          "badge": "every day",
+          "trigger": "always"
+        },
+        {
+          "id": "d2",
+          "name": "Vacuum-clean the surface",
+          "note": "Remove dust after brushing.",
+          "frequency": "Every day",
+          "badge": "every day",
+          "trigger": "always"
+        },
+        {
+          "id": "d3",
+          "name": "Cover rink with UV protection when not in use",
+          "note": "Apply UV protection cover over the rink whenever it is not in use to protect the surface.",
+          "frequency": "Every day",
+          "badge": "every day",
+          "trigger": {
+            "type": "conditional",
+            "requiresRinkProfileField": "hasCover",
+            "note": "Only relevant if the rink has a UV protection cover, per the Rink Profile."
+          }
+        }
+      ]
+    },
+    {
+      "id": "occasional",
+      "label": "Occasionally — when surface looks dirty",
+      "icon": "droplet",
+      "accent": "amber",
+      "trigger": {
+        "type": "conditional",
+        "showWhen": { "question": "q_dirty", "equals": true }
+      },
+      "tasks": [
+        {
+          "id": "o1",
+          "name": "Wet clean the surface",
+          "note": "Kärcher brush + water + Glice Clean, vacuum function ON.",
+          "frequency": "When dirty",
+          "badge": "when dirty",
+          "trigger": { "type": "conditional", "showWhen": { "question": "q_dirty", "equals": true } }
+        },
+        {
+          "id": "o2",
+          "name": "Apply Glice Care after wet cleaning",
+          "note": "Wet cleaning dries out the surface. Glice Care restores it. Never skip this step.",
+          "frequency": "Always after wet clean",
+          "badge": "always",
+          "trigger": { "type": "pairedWith", "pairedTaskId": "o1", "note": "Se muestra y marca siempre junto a o1, no depende de una pregunta propia." }
+        }
+      ]
+    },
+    {
+      "id": "powerwash",
+      "label": "Power wash — exceptional only",
+      "subtitle": "Only if wet cleaning is not enough",
+      "icon": "alert-triangle",
+      "accent": "red",
+      "trigger": {
+        "type": "conditional",
+        "showWhen": { "question": "q_restored", "equals": false }
+      },
+      "tasks": [
+        {
+          "id": "pw1",
+          "name": "Power wash the surface",
+          "note": "Only when wet cleaning has not restored the surface.",
+          "frequency": "Exceptional only",
+          "badge": "exceptional",
+          "trigger": { "type": "conditional", "showWhen": { "question": "q_restored", "equals": false } }
+        }
+      ]
+    },
+    {
+      "id": "sharpening",
+      "label": "Sharpener",
+      "icon": "cut",
+      "accent": "green",
+      "tasks": [
+        {
+          "id": "s1",
+          "name": "Sharpen blades",
+          "note": "For a perfect skating experience, sharpen after every 2-4 hours of skating.",
+          "frequency": "Every 2-4 hrs skating",
+          "badge": "every 2-4 hrs skating",
+          "trigger": {
+            "type": "conditional",
+            "requiresRinkProfileField": "offersSkateRental",
+            "note": "Only relevant for rental skates, which see repeated use across many skaters."
+          }
+        },
+        {
+          "id": "s2",
+          "name": "Check sharpener configuration",
+          "note": "Confirm the sharpening wheel is correctly centred. Check at least once a day.",
+          "frequency": "Once a day",
+          "badge": "once a day",
+          "trigger": "always"
+        }
+      ]
+    }
+  ],
+  "tip": "Daily brushing also keeps skate blades sharper for longer — saving the Rink Manager time. Want to save time? Brush the rink daily!"
+}
+
+</script>
+<script type="application/json" id="videoLibraryData">
+{
+  "categories": [
+    {
+      "id": "instalacion",
+      "label": "Installation",
+      "videos": [
+        {
+          "title": "Rink Assembly - Preparation",
+          "vimeoId": "901827973"
+        },
+        {
+          "title": "Rink Assembly - Installation of the Panels",
+          "vimeoId": "901828229"
+        },
+        {
+          "title": "Panel Installation in Challenging Circumstances",
+          "vimeoId": "901828590"
+        },
+        {
+          "title": "Rink Assembly - Dasherboard Installation",
+          "vimeoId": "901830671"
+        },
+        {
+          "title": "Rink Assembly - Dasherboard Levelling",
+          "vimeoId": "901830886"
+        }
+      ]
+    },
+    {
+      "id": "limpieza",
+      "label": "Cleaning",
+      "videos": [
+        {
+          "title": "Glice Cleaning Machines",
+          "vimeoId": "611771348"
+        },
+        {
+          "title": "Glice Vacuum Cleaner",
+          "vimeoId": "611775684"
+        },
+        {
+          "title": "Fogger for Glice Clean",
+          "vimeoId": "611777693"
+        },
+        {
+          "title": "Glice Polisher Assembly",
+          "vimeoId": "611779140"
+        },
+        {
+          "title": "Glice Polisher Operation",
+          "vimeoId": "611781045"
+        },
+        {
+          "title": "Fogger for Glice Care",
+          "vimeoId": "611784633"
+        },
+        {
+          "title": "Glice Cleaning Procedure",
+          "vimeoId": "611786877"
+        }
+      ]
+    },
+    {
+      "id": "afiladora-prosharp",
+      "label": "Sharpener – ProSharp",
+      "videos": [
+        {
+          "title": "Unboxing",
+          "vimeoId": "611790503"
+        },
+        {
+          "title": "Plugging in Power Cable",
+          "vimeoId": "611825966"
+        },
+        {
+          "title": "Plugging in Vacuum Cleaner",
+          "vimeoId": "611827145"
+        },
+        {
+          "title": "Clamping the Skate",
+          "vimeoId": "611847771"
+        },
+        {
+          "title": "Activate Sharpening",
+          "vimeoId": "611853474"
+        },
+        {
+          "title": "One Cycle",
+          "vimeoId": "611854463"
+        },
+        {
+          "title": "Unclamping the Skate",
+          "vimeoId": "611878892"
+        },
+        {
+          "title": "Clamping Skate and Sharpening 1 Cycle",
+          "vimeoId": "611881736"
+        },
+        {
+          "title": "Honing",
+          "vimeoId": "611884909"
+        },
+        {
+          "title": "Testing Sharpness",
+          "vimeoId": "611902038"
+        },
+        {
+          "title": "Daily Cleaning",
+          "vimeoId": "611903474"
+        },
+        {
+          "title": "Adjusting Wheel Pressure",
+          "vimeoId": "611916976"
+        },
+        {
+          "title": "Changing Grinding Wheel",
+          "vimeoId": "611940672"
+        },
+        {
+          "title": "Checking Even Edges and Adjustment of Grinding Wheel's Lateral Position",
+          "vimeoId": "611945112"
+        }
+      ]
+    },
+    {
+      "id": "afiladora-sparx",
+      "label": "Sharpener – Sparx",
+      "videos": [
+        {
+          "title": "Quick Start Guide",
+          "vimeoId": "1240709248"
+        },
+        {
+          "title": "Assembling the Sharpener",
+          "vimeoId": "1240712696"
+        },
+        {
+          "title": "Aligning the Sharpener",
+          "vimeoId": "1240713151"
+        },
+        {
+          "title": "Installing Grinding Ring",
+          "vimeoId": "1240711034"
+        },
+        {
+          "title": "Cleaning the Base",
+          "vimeoId": "1240711960"
+        },
+        {
+          "title": "Sharpening Basics",
+          "vimeoId": "1240706038"
+        },
+        {
+          "title": "Lifting the Head Unit",
+          "vimeoId": "1240709929"
+        },
+        {
+          "title": "Sharpening Figure Skates",
+          "vimeoId": "1240708551"
+        },
+        {
+          "title": "Replacing the Air Filter",
+          "vimeoId": "1240706923"
+        },
+        {
+          "title": "Removing Head Unit",
+          "vimeoId": "1240707122"
+        }
+      ]
+    },
+    {
+      "id": "desinstalacion",
+      "label": "Disassembly",
+      "videos": [
+        {
+          "title": "Rink Disassembly - Panel Disassembly",
+          "vimeoId": "901831138"
+        },
+        {
+          "title": "Rink Disassembly - Dasherboard Disassembly",
+          "vimeoId": "901831271"
+        }
+      ]
+    },
+    {
+      "id": "almacenaje",
+      "label": "Storage",
+      "videos": [
+        {
+          "title": "Wooden Pallet: Boxing Panels",
+          "vimeoId": "613106246"
+        },
+        {
+          "title": "Wooden Pallet: Unboxing Straight Dasherboards",
+          "vimeoId": "613071349"
+        },
+        {
+          "title": "Wooden Pallet: Unboxing Curved Dasherboards + Feet",
+          "vimeoId": "613069306"
+        },
+        {
+          "title": "Wooden Pallet: Boxing Straight Dasherboards with 2 Guides",
+          "vimeoId": "613067399"
+        },
+        {
+          "title": "Wooden Pallet: Boxing Straight Dasherboards with 1 Guide",
+          "vimeoId": "613065827"
+        },
+        {
+          "title": "Wooden Pallet: Boxing Curved Dasherboards + Feet",
+          "vimeoId": "613063617"
+        },
+        {
+          "title": "Pallet Box: Unboxing Panels",
+          "vimeoId": "613104572"
+        },
+        {
+          "title": "Pallet Box: Boxing Panels",
+          "vimeoId": "613103131"
+        },
+        {
+          "title": "Boxing Glice Panels",
+          "vimeoId": "613101287"
+        },
+        {
+          "title": "Pallet Box: Unboxing Straight Dasherboards",
+          "vimeoId": "613060435"
+        },
+        {
+          "title": "Pallet Box: Unboxing Curved Dasherboards + Feet",
+          "vimeoId": "613059124"
+        },
+        {
+          "title": "Pallet Box: Boxing Straight Dasherboards",
+          "vimeoId": "613058057"
+        },
+        {
+          "title": "Pallet Box: Boxing Curved Dasherboards + Feet",
+          "vimeoId": "613055782"
+        },
+        {
+          "title": "Wooden Pallet: Boxing Curved Dasherboards + Feet on a Wooden Pallet",
+          "vimeoId": "613061697"
+        }
+      ]
+    },
+    {
+      "id": "transporte",
+      "label": "Transport",
+      "videos": [
+        {
+          "title": "Loading of the Skate Shelves",
+          "vimeoId": "901825528"
+        },
+        {
+          "title": "Loading with Long Blades",
+          "vimeoId": "901826153"
+        },
+        {
+          "title": "Loading with Short Blades",
+          "vimeoId": "901826414"
+        },
+        {
+          "title": "Manual Pallet Jack",
+          "vimeoId": "901826765"
+        },
+        {
+          "title": "Repeat Loading",
+          "vimeoId": "901826897"
+        }
+      ]
+    }
+  ]
+}
+</script>
+<script src="js/vendor/jspdf.umd.min.js"></script>
+<script src="js/app.js"></script>
+</body>
+</html>
