@@ -21,7 +21,7 @@
     <ol class="legal-list">
       <li><strong>Your data stays on this device.</strong> Rink profile, checklist history, staff names, and photos are stored locally on this device only. Glice does not receive or store this data unless you actively export or send it (for example, by sharing a PDF summary).</li>
       <li><strong>Photos.</strong> Photos you take are for maintenance records. Avoid including people in photos where possible; your facility is responsible for how these images are stored, shared, and deleted on-site.</li>
-      <li><strong>Videos.</strong> The Video Library streams from Vimeo. Playing a video connects to Vimeo's service, which is outside Glice's control.</li>
+      <li><strong>Third-party services.</strong> The Video Library streams from Vimeo, and the app is served from GitHub Pages and loads its typeface from Google Fonts. These services can see your device's IP address and are outside Glice's control.</li>
       <li><strong>No warranty.</strong> This app is provided "as is," as a maintenance aid. It does not replace the official Glice manuals, training, or manufacturer instructions, and Glice is not liable for damages arising from its use, to the fullest extent permitted by law.</li>
       <li><strong>Your facility's responsibility.</strong> Your facility (as employer) is responsible for complying with applicable data protection and labor laws regarding staff names and activity records entered here.</li>
     </ol>
@@ -46,6 +46,8 @@
       <p class="home-date" id="homeDate"></p>
       <p class="home-rink-summary" id="homeRinkSummary">Set up your Rink Profile to get started</p>
     </div>
+
+    <div class="install-banner-slot"></div>
 
     <button class="hero-card" data-screen="maintenance">
       <span class="hero-card__title">Daily Maintenance</span>
@@ -75,7 +77,8 @@
   <section id="screen-rink-profile" class="screen" hidden>
     <button class="back-btn" data-back>&larr; Back</button>
     <h1 class="screen-title">Rink Profile</h1>
-    <p class="screen-subtitle">Tell us about your rink — this shapes your daily checklist.</p>
+    <div class="install-banner-slot"></div>
+    <p class="screen-subtitle" id="profileSubtitle">Tell us about your rink — this shapes your daily checklist.</p>
 
     <form id="rink-profile-form">
 
@@ -108,6 +111,7 @@
 
       <button type="submit" class="btn-primary" style="margin-top:8px;">Save profile</button>
       <p id="profile-saved-msg" class="field-saved-msg" hidden>Saved ✓</p>
+      <p id="profile-error-msg" class="field-saved-msg" style="color:var(--danger);" hidden>Please answer all four questions to unlock the checklist. Rink size is optional.</p>
     </form>
   </section>
 
@@ -155,7 +159,25 @@
       <strong style="color:var(--text-primary);font-size:15px;">helpdesk@glice.com</strong>
     </p>
 
+    <button type="button" class="legal-link" data-screen="install">Install the app</button>
     <button type="button" class="legal-link" data-screen="legal">Legal &amp; Privacy Notice</button>
+  </section>
+
+  <section id="screen-install" class="screen" hidden>
+    <button class="back-btn" data-back="support">&larr; Back</button>
+    <h1 class="screen-title">Install the app</h1>
+    <p class="screen-subtitle">Installing adds a Glice icon to your device. The app opens full screen and, after the first visit, works without a connection (videos still need one).</p>
+    <p id="installStandaloneMsg" class="field-saved-msg" hidden>This app is already installed on this device ✓</p>
+    <button type="button" class="btn-primary" id="installNowBtn" hidden>Install now</button>
+
+    <div class="task-card install-steps">
+      <div class="task-group-label">Android (Chrome)</div>
+      <p>Open the menu (⋮) and tap "Install app" or "Add to Home screen".</p>
+      <div class="task-group-label">iPhone / iPad (Safari)</div>
+      <p>Tap the Share button, then "Add to Home Screen". Install first, then set up your Rink Profile: Safari and the installed app do not share data.</p>
+      <div class="task-group-label">Computer (Chrome / Edge)</div>
+      <p>Click the install icon at the right end of the address bar.</p>
+    </div>
   </section>
 
   <section id="screen-legal" class="screen" hidden>

@@ -428,3 +428,68 @@ body {
   padding: 16px 0 4px;
   cursor: pointer;
 }
+
+/* ---------- Install banner / install screen ---------- */
+
+.install-banner {
+  background: var(--surface);
+  border: 1px solid var(--surface-border);
+  border-radius: var(--radius-card);
+  padding: 12px 14px;
+  margin-bottom: 14px;
+}
+
+.install-banner__title {
+  display: block;
+  font-size: 14px;
+  color: var(--text-primary);
+}
+
+.install-banner__text {
+  margin: 4px 0 0;
+  font-size: 13px;
+  line-height: 1.45;
+  color: var(--text-secondary);
+}
+
+.install-banner__actions {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  margin-top: 10px;
+}
+
+.install-banner__actions .btn-primary {
+  width: auto;
+  padding: 8px 18px;
+  font-size: 13px;
+}
+
+.install-banner__dismiss {
+  background: none;
+  border: none;
+  color: var(--text-secondary);
+  font-family: var(--font-body);
+  font-size: 13px;
+  cursor: pointer;
+  padding: 6px 0;
+}
+
+.install-steps p {
+  margin: 0 0 14px;
+  font-size: 14px;
+  line-height: 1.5;
+  color: var(--text-secondary);
+}
+
+.install-steps p:last-child {
+  margin-bottom: 0;
+}
+
+#installNowBtn {
+  margin-bottom: 16px;
+}
+
+#installNowBtn[hidden] {
+  display: none;
+}

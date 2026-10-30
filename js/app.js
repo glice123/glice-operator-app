@@ -13,14 +13,16 @@ var LEGAL_FULL_TEXT_HTML =
   '<li>Photos attached to checklist entries</li>' +
   '</ul>' +
   '<p>Photos are automatically deleted from the device after 30 days. All other local data remains until the facility clears it (e.g., by clearing browser data or uninstalling the app).</p>' +
+  '<p>The app also keeps an offline copy of its own files (code, images and typefaces) in the browser cache so that it can open without a connection. This copy contains no personal data. Small app preferences (for example, whether the install tip was dismissed) are stored on the device in the same way.</p>' +
   '<h3>3. When data leaves the device</h3>' +
   '<p>Data only leaves the device if a staff member actively chooses to export or share it — for example, generating a PDF summary and emailing or messaging it to a supervisor or to Glice support. That export, and anyone it is sent to, is outside this app’s control.</p>' +
   '<h3>4. Photos</h3>' +
   '<p>Photos are taken to document rink conditions. Staff should avoid capturing identifiable people (colleagues, visitors, bystanders) where reasonably possible. The facility is responsible for how photos are used, stored, and deleted beyond the automatic 30-day local cleanup.</p>' +
   '<h3>5. Staff / employee data</h3>' +
   '<p>Entering a staff name against a checklist entry creates a record of who performed a task and when. This data stays on the device and is not used by Glice for employee monitoring or evaluation. However, your facility, as the employer, is responsible for informing staff about this record-keeping and for complying with applicable local labor and data protection law, which can require more than a notice (for example, prior consultation with employee representatives) depending on the country.</p>' +
-  '<h3>6. Third-party content</h3>' +
+  '<h3>6. Third-party services</h3>' +
   '<p>The Video Library streams instructional videos hosted on Vimeo. Playing a video connects to Vimeo and is subject to Vimeo’s own privacy practices, outside Glice’s control.</p>' +
+  '<p>The app is served from GitHub Pages (GitHub, Inc., a Microsoft company) and loads its typeface from Google Fonts. When the app is opened with an internet connection, these providers receive standard connection data, such as the device’s IP address, and are subject to their own privacy practices, outside Glice’s control. Once the app has been opened online, it can start again without a connection.</p>' +
   '<h3>7. No warranty; limitation of liability</h3>' +
   '<p>This app is provided “as is” and “as available,” without warranties of any kind, express or implied, including fitness for a particular purpose or error-free operation. To the fullest extent permitted by law, Glice AG is not liable for any damages, direct or indirect, arising from use of this app, including reliance on checklist results or loss of locally stored data.</p>' +
   '<h3>8. Governing law</h3>' +
@@ -101,6 +103,15 @@ function saveProfile(profile) {
   localStorage.setItem(PROFILE_KEY, JSON.stringify(profile));
 }
 
+// A profile is complete when the four yes/no or indoor/outdoor questions are answered.
+// Rink size is optional (it is only shown in the Home summary).
+var PROFILE_REQUIRED_FIELDS = ['location', 'hasDrainage', 'hasCover', 'offersSkateRental'];
+
+function isProfileComplete() {
+  var p = getProfile();
+  return PROFILE_REQUIRED_FIELDS.every(function (f) { return !!p[f]; });
+}
+
 (function initRinkProfileForm() {
   var form = document.getElementById('rink-profile-form');
   if (!form) return;
@@ -130,13 +141,47 @@ function saveProfile(profile) {
 
   form.addEventListener('submit', function (e) {
     e.preventDefault();
+    var wasComplete = isProfileComplete();
     profile.rinkSize = sizeInput.value;
     saveProfile(profile);
 
     var msg = document.getElementById('profile-saved-msg');
+    var errMsg = document.getElementById('profile-error-msg');
+
+    if (!isProfileComplete()) {
+      // Keep what was entered, but explain why the checklist is still locked.
+      msg.hidden = true;
+      errMsg.hidden = false;
+      return;
+    }
+    errMsg.hidden = true;
     msg.hidden = false;
-    setTimeout(function () { msg.hidden = true; }, 2000);
+
+    if (!wasComplete) {
+      // First time the profile is completed: continue to Home.
+      setTimeout(function () {
+        msg.hidden = true;
+        showScreen('home');
+        renderHomeContext();
+      }, 800);
+    } else {
+      setTimeout(function () { msg.hidden = true; }, 2000);
+    }
   });
+})();
+
+/* ---------- First-run onboarding ---------- */
+// First launch with an incomplete profile: open the Rink Profile once.
+// Only the checklist is gated on a complete profile; Videos and Support stay usable.
+
+var ONBOARDING_KEY = 'glice_onboarding_shown';
+
+(function initFirstRun() {
+  if (isProfileComplete() || localStorage.getItem(ONBOARDING_KEY)) return;
+  localStorage.setItem(ONBOARDING_KEY, '1');
+  var subtitle = document.getElementById('profileSubtitle');
+  if (subtitle) subtitle.textContent = 'Welcome! Answer these questions to unlock your daily checklist. It only takes a minute.';
+  showScreen('rink-profile');
 })();
 
 /* ---------- Daily Maintenance (data-driven from data/checklist.json) ---------- */
@@ -517,6 +562,18 @@ function renderMaintenanceScreen() {
     return;
   }
   if (!checklistData) return; // still loading
+
+  // Gate: the checklist depends on the Rink Profile (UV cover, skate rental).
+  if (!isProfileComplete()) {
+    var gate = el('div', 'task-card');
+    gate.appendChild(el('p', 'screen-subtitle', 'Set up your Rink Profile first. Your daily checklist depends on it (for example UV cover and skate rental).'));
+    var gateBtn = el('button', 'btn-primary', 'Set up Rink Profile');
+    gateBtn.type = 'button';
+    gateBtn.addEventListener('click', function () { showScreen('rink-profile'); });
+    gate.appendChild(gateBtn);
+    container.appendChild(gate);
+    return;
+  }
 
   var answers = { q_dirty: null, q_restored: null };
   var completed = {};
@@ -1054,12 +1111,14 @@ function renderHomeContext() {
 
   var summaryEl = document.getElementById('homeRinkSummary');
   if (summaryEl) {
-    var summary = profileSummaryText(getProfile());
+    var summary = isProfileComplete() ? profileSummaryText(getProfile()) : null;
     summaryEl.textContent = summary || 'Set up your Rink Profile to get started';
   }
 
   var progressEl = document.getElementById('heroProgress');
-  if (progressEl) {
+  if (progressEl && !isProfileComplete()) {
+    progressEl.textContent = 'Complete your Rink Profile to unlock the checklist';
+  } else if (progressEl) {
     openDb().then(function (db) {
       var tx = db.transaction(STORE_NAME, 'readonly');
       var store = tx.objectStore(STORE_NAME);
@@ -1085,3 +1144,87 @@ renderHomeContext();
 document.querySelectorAll('[data-back]').forEach(function (btn) {
   btn.addEventListener('click', renderHomeContext);
 });
+
+/* ---------- Install prompt (banner on Home / Rink Profile + instructions screen) ---------- */
+
+var INSTALL_DISMISS_KEY = 'glice_install_tip_dismissed';
+var deferredInstallPrompt = null;
+
+function isStandalone() {
+  return (window.matchMedia && window.matchMedia('(display-mode: standalone)').matches) ||
+    window.navigator.standalone === true;
+}
+
+function isIOSDevice() {
+  return /iphone|ipad|ipod/i.test(navigator.userAgent) ||
+    (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+}
+
+function buildInstallBanner(canPrompt) {
+  var box = el('div', 'install-banner');
+  box.appendChild(el('strong', 'install-banner__title', 'Install this app'));
+
+  var text = canPrompt
+    ? 'Add it to your device: it opens full screen and works without a connection.'
+    : 'Tap Share, then "Add to Home Screen", and open the app from there. Do this before setting up your profile: Safari and the installed app do not share data.';
+  box.appendChild(el('p', 'install-banner__text', text));
+
+  var actions = el('div', 'install-banner__actions');
+  if (canPrompt) {
+    var installBtn = el('button', 'btn-primary', 'Install');
+    installBtn.type = 'button';
+    installBtn.addEventListener('click', triggerInstall);
+    actions.appendChild(installBtn);
+  }
+  var dismissBtn = el('button', 'install-banner__dismiss', canPrompt ? 'Not now' : 'Got it');
+  dismissBtn.type = 'button';
+  dismissBtn.addEventListener('click', function () {
+    localStorage.setItem(INSTALL_DISMISS_KEY, '1');
+    renderInstallUi();
+  });
+  actions.appendChild(dismissBtn);
+  box.appendChild(actions);
+  return box;
+}
+
+function triggerInstall() {
+  if (!deferredInstallPrompt) return;
+  deferredInstallPrompt.prompt();
+  deferredInstallPrompt.userChoice.then(function () {
+    deferredInstallPrompt = null;
+    renderInstallUi();
+  });
+}
+
+function renderInstallUi() {
+  var canPrompt = !!deferredInstallPrompt;
+  var dismissed = !!localStorage.getItem(INSTALL_DISMISS_KEY);
+  var show = !isStandalone() && !dismissed && (canPrompt || isIOSDevice());
+
+  document.querySelectorAll('.install-banner-slot').forEach(function (slot) {
+    slot.innerHTML = '';
+    if (show) slot.appendChild(buildInstallBanner(canPrompt));
+  });
+
+  var nowBtn = document.getElementById('installNowBtn');
+  if (nowBtn) nowBtn.hidden = !(canPrompt && !isStandalone());
+}
+
+window.addEventListener('beforeinstallprompt', function (e) {
+  e.preventDefault();
+  deferredInstallPrompt = e;
+  renderInstallUi();
+});
+
+window.addEventListener('appinstalled', function () {
+  deferredInstallPrompt = null;
+  renderInstallUi();
+});
+
+(function initInstallScreen() {
+  var nowBtn = document.getElementById('installNowBtn');
+  if (nowBtn) nowBtn.addEventListener('click', triggerInstall);
+  var standaloneMsg = document.getElementById('installStandaloneMsg');
+  if (standaloneMsg) standaloneMsg.hidden = !isStandalone();
+  renderInstallUi();
+})();
