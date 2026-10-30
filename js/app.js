@@ -56,7 +56,15 @@ function hasAcceptedLegalNotice() {
   });
 })();
 
-function showScreen(id) {
+/* Screen navigation is kept in sync with the browser history, so the Android back
+   button (and the iOS swipe-back) moves to the previous screen instead of leaving the app. */
+
+var screenStack = ['home'];
+if (window.history && history.replaceState) {
+  history.replaceState({ screen: 'home', i: 0 }, '');
+}
+
+function renderScreen(id) {
   document.querySelectorAll('.screen').forEach(function (el) {
     el.hidden = true;
   });
@@ -65,6 +73,44 @@ function showScreen(id) {
     target.hidden = false;
   }
 }
+
+// opts.replace: swap the current history entry instead of adding one.
+// opts.fromPop: the browser already moved in history; only draw the screen.
+function showScreen(id, opts) {
+  opts = opts || {};
+  var current = screenStack[screenStack.length - 1];
+  renderScreen(id);
+  if (opts.fromPop || !(window.history && history.pushState)) return;
+
+  if (opts.replace || id === current) {
+    screenStack[screenStack.length - 1] = id;
+    history.replaceState({ screen: id, i: screenStack.length - 1 }, '');
+  } else {
+    screenStack.push(id);
+    history.pushState({ screen: id, i: screenStack.length - 1 }, '');
+  }
+}
+
+// Go "back" to a parent screen: rewind history to it if it is already in the stack.
+function navigateTo(target) {
+  var idx = screenStack.lastIndexOf(target);
+  var top = screenStack.length - 1;
+  if (idx !== -1 && idx < top && window.history && history.go) {
+    history.go(idx - top); // the popstate handler below draws the screen
+  } else {
+    showScreen(target, { replace: true });
+  }
+}
+
+window.addEventListener('popstate', function (e) {
+  var st = e.state;
+  if (!st || typeof st.i !== 'number' || !st.screen) return;
+  if (st.i < screenStack.length) screenStack.length = st.i + 1;
+  screenStack[st.i] = st.screen;
+  showScreen(st.screen, { fromPop: true });
+  if (st.screen === 'home') renderHomeContext();
+  if (st.screen === 'maintenance') renderMaintenanceScreen();
+});
 
 document.querySelectorAll('[data-screen]').forEach(function (btn) {
   btn.addEventListener('click', function () {
@@ -75,7 +121,7 @@ document.querySelectorAll('[data-screen]').forEach(function (btn) {
 document.querySelectorAll('[data-back]').forEach(function (btn) {
   btn.addEventListener('click', function () {
     var target = btn.getAttribute('data-back');
-    showScreen(target || 'home');
+    navigateTo(target || 'home');
   });
 });
 
@@ -161,7 +207,7 @@ function isProfileComplete() {
       // First time the profile is completed: continue to Home.
       setTimeout(function () {
         msg.hidden = true;
-        showScreen('home');
+        navigateTo('home');
         renderHomeContext();
       }, 800);
     } else {
@@ -181,7 +227,7 @@ var ONBOARDING_KEY = 'glice_onboarding_shown';
   localStorage.setItem(ONBOARDING_KEY, '1');
   var subtitle = document.getElementById('profileSubtitle');
   if (subtitle) subtitle.textContent = 'Welcome! Answer these questions to unlock your daily checklist. It only takes a minute.';
-  showScreen('rink-profile');
+  showScreen('rink-profile', { replace: true });
 })();
 
 /* ---------- Daily Maintenance (data-driven from data/checklist.json) ---------- */
