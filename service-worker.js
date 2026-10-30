@@ -9,7 +9,7 @@
  * What is NOT cached: Vimeo videos (they always need a connection).
  */
 
-var CACHE_VERSION = 'v3';
+var CACHE_VERSION = 'v4';
 var CACHE_NAME = 'glice-operator-' + CACHE_VERSION;
 
 var APP_SHELL = [

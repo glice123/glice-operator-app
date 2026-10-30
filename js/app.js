@@ -787,6 +787,14 @@ function renderMaintenanceScreen() {
       container.appendChild(eventCard);
     });
   });
+
+  // --- Share today's summary without leaving the checklist (same PDF as in History) ---
+  var shareBtn = el('button', 'btn-primary', 'Share Daily Summary (PDF)');
+  shareBtn.type = 'button';
+  shareBtn.id = 'maintenanceExportPdfBtn';
+  shareBtn.style.marginTop = '24px';
+  shareBtn.addEventListener('click', exportTodaysPdfSummary);
+  container.appendChild(shareBtn);
 }
 
 // Re-render every time the maintenance screen is opened, so it reflects
