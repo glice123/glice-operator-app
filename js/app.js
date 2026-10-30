@@ -928,6 +928,174 @@ function exportTodaysPdfSummary() {
   });
 }
 
+/* ---------- PDF layout ---------- */
+
+// jsPDF's built-in fonts only support Windows-1252 text. Any other character (a check mark,
+// Ł, Cyrillic, emoji...) makes the WHOLE string render with spaced-out letters and overlap
+// the next column. So every string is made safe before it is drawn.
+var PDF_EXTRA_CHARS = '€‚ƒ„…†‡ˆ‰Š‹ŒŽ‘’“”•–—˜™š›œžŸ';
+var PDF_CHAR_MAP = { 'ł': 'l', 'Ł': 'L', 'đ': 'd', 'Đ': 'D', 'ı': 'i', 'İ': 'I', 'ħ': 'h', 'Ħ': 'H' };
+
+function pdfSafe(text) {
+  var s = String(text == null ? '' : text);
+  var out = '';
+  for (var i = 0; i < s.length; i++) {
+    var ch = s.charAt(i);
+    if (s.charCodeAt(i) <= 255 || PDF_EXTRA_CHARS.indexOf(ch) !== -1) { out += ch; continue; }
+    if (PDF_CHAR_MAP[ch]) { out += PDF_CHAR_MAP[ch]; continue; }
+    var base = ch.normalize ? ch.normalize('NFD').replace(/[\u0300-\u036f]/g, '') : ch;
+    out += (base.length === 1 && base !== ch && base.charCodeAt(0) <= 255) ? base : '?';
+  }
+  return out;
+}
+
+// Status marks are drawn as lines, because ✓ / ✕ are not available in the PDF font.
+function drawPdfMark(doc, x, baseline, completed) {
+  doc.setLineWidth(1.4);
+  if (completed) {
+    doc.setDrawColor(15, 138, 95);
+    doc.line(x, baseline - 3.5, x + 3, baseline - 0.5);
+    doc.line(x + 3, baseline - 0.5, x + 8, baseline - 7);
+  } else {
+    doc.setDrawColor(226, 80, 74);
+    doc.line(x, baseline - 7, x + 7, baseline);
+    doc.line(x + 7, baseline - 7, x, baseline);
+  }
+  doc.setLineWidth(0.2);
+}
+
+function buildDailySummaryPdf(records, photoDataUrls) {
+  var jsPDFCtor = window.jspdf.jsPDF;
+  var doc = new jsPDFCtor({ unit: 'pt', format: 'a4' });
+  doc.setLineHeightFactor(1.2);
+  var pageWidth = doc.internal.pageSize.getWidth();
+  var pageHeight = doc.internal.pageSize.getHeight();
+  var margin = 40;
+  var bottomLimit = pageHeight - 50;
+  var now = new Date();
+  var y = margin;
+
+  // Header
+  doc.setFont('helvetica', 'bold');
+  doc.setFontSize(16);
+  doc.text('GLICE', margin, y);
+  doc.setFont('helvetica', 'normal');
+  doc.setFontSize(10);
+  doc.text('Operator App', margin, y + 14);
+
+  doc.setFont('helvetica', 'bold');
+  doc.setFontSize(12);
+  doc.text('Daily summary', pageWidth - margin, y, { align: 'right' });
+  doc.setFont('helvetica', 'normal');
+  doc.setFontSize(10);
+  doc.text(now.toLocaleDateString('en-GB', { year: 'numeric', month: 'long', day: 'numeric' }), pageWidth - margin, y + 14, { align: 'right' });
+
+  y += 34;
+  doc.setDrawColor(20);
+  doc.line(margin, y, pageWidth - margin, y);
+  y += 20;
+
+  // Table header
+  var colTaskX = margin + 18;
+  var taskWidth = 235;
+  var colStaffX = margin + 270;
+  var staffWidth = 190;
+
+  doc.setFontSize(10);
+  doc.setTextColor(100);
+  doc.text('Task', colTaskX, y);
+  doc.text('Staff', colStaffX, y);
+  doc.text('Time', pageWidth - margin, y, { align: 'right' });
+  y += 8;
+  doc.setDrawColor(220);
+  doc.line(margin, y, pageWidth - margin, y);
+  y += 16;
+
+  // Table rows (long task or staff names wrap onto several lines)
+  doc.setFontSize(10);
+  records.forEach(function (r) {
+    var time = r.timestamp ? new Date(r.timestamp).toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' }) : '-';
+    doc.setTextColor(20);
+    var taskLines = doc.splitTextToSize(pdfSafe(r.taskName || r.taskId), taskWidth);
+    var staffLines = doc.splitTextToSize(pdfSafe(r.staffName || '-'), staffWidth);
+    var rowHeight = Math.max(taskLines.length, staffLines.length) * 12 + 6;
+
+    if (y + rowHeight > bottomLimit) {
+      doc.addPage();
+      y = margin;
+    }
+    drawPdfMark(doc, margin + 2, y, !!r.completed);
+    doc.setTextColor(20);
+    doc.text(taskLines, colTaskX, y);
+    doc.text(staffLines, colStaffX, y);
+    doc.text(time, pageWidth - margin, y, { align: 'right' });
+    y += rowHeight;
+  });
+
+  // Photos
+  var photosWithData = records
+    .map(function (r, i) { return { r: r, url: photoDataUrls[i] }; })
+    .filter(function (item) { return item.url; });
+
+  if (photosWithData.length) {
+    y += 14;
+    if (y > bottomLimit - 140) {
+      doc.addPage();
+      y = margin;
+    }
+    doc.setDrawColor(220);
+    doc.line(margin, y, pageWidth - margin, y);
+    y += 20;
+    doc.setFontSize(9);
+    doc.setTextColor(100);
+    doc.text('PHOTOS OF THE DAY', margin, y);
+    y += 14;
+
+    var thumbSize = 90;
+    var gap = 14;
+    var perRow = Math.max(1, Math.floor((pageWidth - 2 * margin + gap) / (thumbSize + gap)));
+    var col = 0;
+    var rowStartY = y;
+    var rowHeightPhotos = thumbSize + 28;
+
+    photosWithData.forEach(function (item) {
+      if (col === 0 && rowStartY + rowHeightPhotos > bottomLimit) {
+        doc.addPage();
+        rowStartY = margin;
+      }
+      var x = margin + col * (thumbSize + gap);
+      try {
+        doc.addImage(item.url, 'JPEG', x, rowStartY, thumbSize, thumbSize);
+      } catch (e) {
+        console.error('Could not embed photo in PDF:', e);
+      }
+      doc.setFontSize(7);
+      doc.setTextColor(90);
+      var captionLines = doc.splitTextToSize(pdfSafe(item.r.taskName || ''), thumbSize).slice(0, 2);
+      doc.text(captionLines, x, rowStartY + thumbSize + 10);
+
+      col++;
+      if (col >= perRow) {
+        col = 0;
+        rowStartY += rowHeightPhotos;
+      }
+    });
+  }
+
+  // Footer on every page
+  var totalPages = doc.getNumberOfPages();
+  for (var p = 1; p <= totalPages; p++) {
+    doc.setPage(p);
+    doc.setFont('helvetica', 'normal');
+    doc.setFontSize(8);
+    doc.setTextColor(150);
+    doc.text('Generated automatically by Glice Operator App · ' + now.toLocaleString('en-GB'), margin, pageHeight - 20);
+    doc.text('Page ' + p + ' of ' + totalPages, pageWidth - margin, pageHeight - 20, { align: 'right' });
+  }
+
+  return doc;
+}
+
 function buildAndSharePdf(records) {
   if (!records.length) {
     showToast('Nothing logged today yet', true);
@@ -939,94 +1107,7 @@ function buildAndSharePdf(records) {
   });
 
   Promise.all(photoPromises).then(function (photoDataUrls) {
-    var jsPDFCtor = window.jspdf.jsPDF;
-    var doc = new jsPDFCtor({ unit: 'pt', format: 'a4' });
-    var pageWidth = doc.internal.pageSize.getWidth();
-    var margin = 40;
-    var y = margin;
-
-    doc.setFont('helvetica', 'bold');
-    doc.setFontSize(16);
-    doc.text('GLICE', margin, y);
-    doc.setFont('helvetica', 'normal');
-    doc.setFontSize(10);
-    doc.text('Operator App', margin, y + 14);
-
-    doc.setFont('helvetica', 'bold');
-    doc.setFontSize(12);
-    doc.text('Daily summary', pageWidth - margin, y, { align: 'right' });
-    doc.setFont('helvetica', 'normal');
-    doc.setFontSize(10);
-    doc.text(new Date().toLocaleDateString(undefined, { year: 'numeric', month: 'long', day: 'numeric' }), pageWidth - margin, y + 14, { align: 'right' });
-
-    y += 34;
-    doc.setDrawColor(20);
-    doc.line(margin, y, pageWidth - margin, y);
-    y += 20;
-
-    doc.setFontSize(10);
-    doc.setTextColor(100);
-    doc.text('Task', margin, y);
-    doc.text('Staff', margin + 260, y);
-    doc.text('Time', pageWidth - margin, y, { align: 'right' });
-    y += 8;
-    doc.setDrawColor(220);
-    doc.line(margin, y, pageWidth - margin, y);
-    y += 16;
-
-    doc.setTextColor(20);
-    doc.setFontSize(10);
-    records.forEach(function (r) {
-      var time = r.timestamp ? new Date(r.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : '—';
-      var mark = r.completed ? '✓' : '✕';
-      doc.text(mark + '  ' + (r.taskName || r.taskId), margin, y);
-      doc.text(r.staffName || '—', margin + 260, y);
-      doc.text(time, pageWidth - margin, y, { align: 'right' });
-      y += 18;
-    });
-
-    var photosWithData = records
-      .map(function (r, i) { return { r: r, url: photoDataUrls[i] }; })
-      .filter(function (item) { return item.url; });
-
-    if (photosWithData.length) {
-      y += 14;
-      doc.setDrawColor(220);
-      doc.line(margin, y, pageWidth - margin, y);
-      y += 20;
-      doc.setFontSize(9);
-      doc.setTextColor(100);
-      doc.text('PHOTOS OF THE DAY', margin, y);
-      y += 14;
-
-      var thumbSize = 90;
-      var gap = 14;
-      var perRow = Math.max(1, Math.floor((pageWidth - 2 * margin + gap) / (thumbSize + gap)));
-      var col = 0;
-      var rowStartY = y;
-
-      photosWithData.forEach(function (item) {
-        var x = margin + col * (thumbSize + gap);
-        try {
-          doc.addImage(item.url, 'JPEG', x, rowStartY, thumbSize, thumbSize);
-        } catch (e) {
-          console.error('Could not embed photo in PDF:', e);
-        }
-        doc.setFontSize(7);
-        doc.setTextColor(90);
-        doc.text((item.r.taskName || '').slice(0, 22), x, rowStartY + thumbSize + 10);
-
-        col++;
-        if (col >= perRow) {
-          col = 0;
-          rowStartY += thumbSize + 24;
-        }
-      });
-    }
-
-    doc.setFontSize(8);
-    doc.setTextColor(150);
-    doc.text('Generated automatically by Glice Operator App · ' + new Date().toLocaleString(), margin, doc.internal.pageSize.getHeight() - 20);
+    var doc = buildDailySummaryPdf(records, photoDataUrls);
 
     var pdfBlob = doc.output('blob');
     var fileName = 'glice-daily-summary-' + todayStr() + '.pdf';
